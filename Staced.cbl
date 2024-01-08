@@ -1,4 +1,4 @@
-       identification division.
+        identification division.
        program-id. STACED.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
@@ -7,16 +7,16 @@
        SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT CARTOR ASSIGN SYS005-UR-2540R-S.
-           SELECT CEDOL  ASSIGN SYS006-UR-I403-S.
-           SELECT ANOPIS ASSIGN SYS007-DA-3340-I-ANOPIS.
+           SELECT CARTOR ASSIGN SYS005-UR-2540R-S
+           SELECT CEDOL  ASSIGN SYS006-UR-I403-S
+           SELECT ANOPIS ASSIGN SYS007-DA-3340-I-ANOPIS
            RECORD KEY IS CHIAVE.
        input-output CONTROL.
            APPLY WRITE-VERIFY ON ANOPIS.
        DATA DIVISION.
        FILE SECTION.
        FD  CARTOR,
-           LABEL RECORD OMITTED,    
+           LABEL RECORD OMITTED,
            RECORDING MODE F,
            DATA RECORD CARTELLINO-OROLOGIO.
        01  CARTELLINO-OROLOGIO.
@@ -78,7 +78,7 @@
               03  FILLER                PIC X(7).
               03  O-DESCRIZIONE         PIC X(26).
               03  FILLER                PIC X(42).
-       
+
        FD  ANOPIS,
            LABEL RECORD STANDARD,
            RECORDING MODE F,
@@ -92,7 +92,7 @@
                03 CODICE-PERSONALE       PIC X(4).
            02  NOMINATIVO                PIC X(25).
            02  INDIRIZZO                 PIC X(26).
-           02  DATA-NASCITA              PIC 9(8).    
+           02  DATA-NASCITA              PIC 9(8).
            02  DATA-ASSUNZIONE           PIC 9(8).
            02  QUALIFICA                 PIC XX.
            02  DIPENDENZA                PIC X.
@@ -112,10 +112,10 @@
        77  NUM-CED                       PIC 99 VALUE 0.
        77  INDICE                        PIC 9 COMP VALUE 1.
        77  NUM-PROG                      PIC 9(3) COMP VALUE 1.
-       77  NOMI-MSFI                     PIC X(108) VALUE 
-                                         'GENNAIO FEBBRAIO MARZO APRILE 
-                                         MAGGIO GIUGNO LUGLIO AGOSTO 
-                                         SETTEMBRE OTTOBRE NOVEMBRE 
+       77  NOMI-MSFI                     PIC X(108) VALUE
+                                         'GENNAIO FEBBRAIO MARZO APRILE
+                                         MAGGIO GIUGNO LUGLIO AGOSTO
+                                         SETTEMBRE OTTOBRE NOVEMBRE
                                         DICEMBRE '.
        77  MM                            PIC 99.
        01  IND                           PIC 9 VALUE 1 SYNC.
@@ -128,7 +128,7 @@
               03 COMPETENZE              PIC 9(6).
               03 DESCRIZIONE             PIC X(26).
 
-      
+
        PROCEDURE DIVISION.
            READY TRACE.
        INIZIO-ELABORAZIONE.
@@ -141,7 +141,7 @@
        LETTURA-ANOPIS.
        A3. READ ANOPIS AT END GO TO FINE-ANOPIS.
        A4. IF SITUAZIONE = 'C' GO TO LETTURA-ANOPIS.
-       A1. IF CHIAVE NOT = CODICI-RICERCA GO TO MESSAGGIO-ERRORE. 
+       A1. IF CHIAVE NOT = CODICI-RICERCA GO TO MESSAGGIO-ERRORE.
        A2. CALL 'CALLCRET',
                 USING CARTELLINO-OROLOGIO, ANAG-OPERAI, RIGHE-CEDOLINO, IND.
            REWRITE ANAG-OPERAI INVALID KEY STOP RUN.
@@ -152,7 +152,7 @@
            MOVE SPACES TO RIGA.
            MOVE NUM-PROG TO O-NUM-PROG.
            MOVE NOMINATIVO TO O-NOMINATIVO.
-           MOVE CODICE-PERSONALE TO O-CODICE-PERSONALE.    
+           MOVE CODICE-PERSONALE TO O-CODICE-PERSONALE.
            MOVE MESE (MM) TO O-MESE.
            MOVE 20 SECOLO.
            MOVE I-AA TO ANAG.
@@ -171,7 +171,7 @@
            MOVE '-' TO CARATTERE-CONTROLLO.
            WRITE RIGA AFTER POSITIONING 2.
            MOVE SPACES TO RIGA.
-       
+
        STAMPA-RECORDS.
            MOVE TRATTENURE(INDICE) TO C-TRATTENUTE.
            MOVE COMPETENZE(INDICE) TO C-COMPETENZE.
