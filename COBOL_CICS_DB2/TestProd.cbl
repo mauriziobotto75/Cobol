@@ -1,4 +1,6 @@
-       IDENTIFICATION DIVISION.
+ 
+
+                  IDENTIFICATION DIVISION.
        PROGRAM-ID. TESTPROD.
 
        DATA DIVISION.
@@ -6,157 +8,135 @@
        WORKING-STORAGE SECTION.
 
        EXEC SQL
-            INCLUDE SQLCA
+          INCLUDE SQLCA
        END-EXEC.
 
-       01 SW-FINE               PIC X VALUE 'N'.
-          88 EOF-PRODOTTI       VALUE 'S'.
+       COPY DFHAID.
 
-       01 WS-CODICE-RICERCA     PIC X(5).
+       COPY PRDMAPI.
+       COPY PRDMAPO.
 
-       01 WS-PRODOTTO.
-          05 WS-CODICE-PRODOTTO PIC X(5).
-          05 WS-DESCRIZIONE     PIC X(30).
-          05 WS-PREZZO          PIC S9(6)V99 COMP-3.
-          05 WS-SCORTA-MINIMA   PIC S9(3) COMP-3.
+       01 WS-CODICE.
+          05 WS-CODICE-PROD      PIC X(5).
 
-      ********************************************************
-      * CURSORE
-      ********************************************************
-
-       EXEC SQL
-            DECLARE C-PRODOTTI CURSOR FOR
-            SELECT CODICE_PRODOTTO,
-                   DESCRIZIONE,
-                   PREZZO,
-                   SCORTA_MINIMA
-              FROM PRODOTTI
-             WHERE CODICE_PRODOTTO >= :WS-CODICE-RICERCA
-             ORDER BY CODICE_PRODOTTO
-       END-EXEC.
+       01 WS-DESCRIZIONE         PIC X(30).
+       01 WS-PREZZO             PIC S9(6)V99 COMP-3.
+       01 WS-SCORTA             PIC S9(3) COMP-3.
 
        PROCEDURE DIVISION.
 
        MAIN.
 
-      ********************************************************
-      * IN CICS NORMALMENTE IL CODICE ARRIVA DA UNA MAPPA BMS
-      ********************************************************
+      *---------------------------------
+      * Ricezione dati dalla mappa
+      *---------------------------------
 
-           MOVE 'A0001'
-             TO WS-CODICE-RICERCA
+           EXEC CICS RECEIVE
+                MAP('PRDMAP')
+                MAPSET('PRDMAP')
+                INTO(PRDMAPI)
+           END-EXEC
 
-      ********************************************************
-      * LETTURA SINGOLO PRODOTTO
-      ********************************************************
+      *---------------------------------
+      * PF3 = Uscita
+      *---------------------------------
+
+           IF EIBAID = DFHPF3
+
+              EXEC CICS RETURN
+              END-EXEC
+
+           END-IF
+
+      *---------------------------------
+      * Codice immesso
+      *---------------------------------
+
+           MOVE CODCLII
+             TO WS-CODICE-PROD
+
+      *---------------------------------
+      * Ricerca DB2
+      *---------------------------------
 
            EXEC SQL
-                SELECT CODICE_PRODOTTO,
-                       DESCRIZIONE,
+
+                SELECT DESCRIZIONE,
                        PREZZO,
                        SCORTA_MINIMA
-                  INTO :WS-CODICE-PRODOTTO,
-                       :WS-DESCRIZIONE,
+
+                  INTO :WS-DESCRIZIONE,
                        :WS-PREZZO,
-                       :WS-SCORTA-MINIMA
+                       :WS-SCORTA
+
                   FROM PRODOTTI
+
                  WHERE CODICE_PRODOTTO =
-                       :WS-CODICE-RICERCA
+                       :WS-CODICE-PROD
+
            END-EXEC
+
+      *---------------------------------
+      * Esito ricerca
+      *---------------------------------
 
            EVALUATE SQLCODE
 
               WHEN 0
 
-                   DISPLAY 'PRODOTTO TROVATO'
+                   MOVE WS-DESCRIZIONE
+                     TO DESCRO
 
-                   DISPLAY 'CODICE      : '
-                           WS-CODICE-PRODOTTO
+                   MOVE WS-PREZZO
+                     TO PREZZOO
 
-                   DISPLAY 'DESCRIZIONE : '
-                           WS-DESCRIZIONE
+                   MOVE WS-SCORTA
+                     TO SCORTAO
 
-                   DISPLAY 'PREZZO      : '
-                           WS-PREZZO
+                   MOVE
+                   'PRODOTTO TROVATO'
+                     TO MESSAGGO
 
-                   DISPLAY 'SCORTA MIN. : '
-                           WS-SCORTA-MINIMA
+              WHEN 100
 
-              WHEN +100
+                   MOVE SPACES
+                     TO DESCRO
 
-                   DISPLAY 'PRODOTTO NON TROVATO'
+                   MOVE SPACES
+                     TO PREZZOO
+
+                   MOVE SPACES
+                     TO SCORTAO
+
+                   MOVE
+                   'PRODOTTO NON TROVATO'
+                     TO MESSAGGO
 
               WHEN OTHER
 
-                   DISPLAY 'ERRORE DB2'
-                   DISPLAY 'SQLCODE = '
-                           SQLCODE
+                   MOVE
+                   'ERRORE DB2'
+                     TO MESSAGGO
 
            END-EVALUATE
 
-      ********************************************************
-      * LETTURA SEQUENZIALE
-      ********************************************************
+      *---------------------------------
+      * Invio mappa aggiornata
+      *---------------------------------
 
-           EXEC SQL
-                OPEN C-PRODOTTI
+           EXEC CICS SEND
+                MAP('PRDMAP')
+                MAPSET('PRDMAP')
+                FROM(PRDMAPO)
+                ERASE
+                CURSOR
            END-EXEC
 
-           IF SQLCODE NOT = 0
-              DISPLAY 'ERRORE OPEN CURSORE'
-              DISPLAY SQLCODE
-              GO TO FINE-PROGRAMMA
-           END-IF
-
-           MOVE 'N' TO SW-FINE
-
-           PERFORM UNTIL EOF-PRODOTTI
-
-              EXEC SQL
-                   FETCH C-PRODOTTI
-                     INTO :WS-CODICE-PRODOTTO,
-                          :WS-DESCRIZIONE,
-                          :WS-PREZZO,
-                          :WS-SCORTA-MINIMA
-              END-EXEC
-
-              EVALUATE SQLCODE
-
-                 WHEN 0
-
-                    DISPLAY
-                    '----------------------'
-
-                    DISPLAY
-                    WS-CODICE-PRODOTTO
-                    ' '
-                    WS-DESCRIZIONE
-
-                 WHEN +100
-
-                    SET EOF-PRODOTTI
-                        TO TRUE
-
-                 WHEN OTHER
-
-                    DISPLAY
-                    'ERRORE FETCH'
-
-                    DISPLAY
-                    SQLCODE
-
-                    SET EOF-PRODOTTI
-                        TO TRUE
-
-              END-EVALUATE
-
-           END-PERFORM
-
-           EXEC SQL
-                CLOSE C-PRODOTTI
-           END-EXEC.
-
-       FINE-PROGRAMMA.
+      *---------------------------------
+      * Ritorno in attesa
+      *---------------------------------
 
            EXEC CICS RETURN
+                TRANSID('TPRD')
+                COMMAREA(DFHCOMMAREA)
            END-EXEC.
