@@ -1,0 +1,217 @@
+Esempio completo - Inserimento Articoli
+COBOL1PROCEDURE DIVISION.2 3MAIN.4 5    OPEN I-O VIDEOFILE6    OPEN I-O ARTICOLI7 8    PERFORM UNTIL CODART = 09 10       WRITE ARTINS11       READ VIDEOFILE12 13       IF CODART NOT = 014 15          WRITE REC-ART16              INVALID KEY17                  DISPLAY "CHIAVE DUPLICATA"18 19       END-IF20 21    END-PERFORM22 23    CLOSE VIDEOFILE24    CLOSE ARTICOLI25 26    STOP RUN.Show more lines
+
+6. DSPF con tasti funzione
+DDS:
+COBOLdds isn’t fully supported. Syntax highlighting is based on COBOL.1A                                      CF03(03)2A                                      CF12(12)3 4A          R ARTINS5A  03                                  EXIT6A  12                                  CANCELShow more lines
+In COBOL:
+COBOL1FD VIDEOFILE.2 301 ARTINS.4   05 F03             PIC X.5   05 F12             PIC X.6   05 CODART          PIC 9(5).7   ...Show more lines
+Dopo la READ:
+COBOL1IF F03 = '1'2   MOVE 0 TO CODART3END-IFShow more lines
+oppure usando gli indicatori IBM:
+COBOL1IF IN032   GO TO FINE-PROG3END-IFShow more lines
+
+7. Collegamento di più videate allo stesso DSPF
+Puoi definire più Record Format nello stesso DSPF:
+COBOLdds isn’t fully supported. Syntax highlighting is based on COBOL.1A          R MENUFMT2...3A          R ARTINS4...5A          R ARTVAR6...7A          R ORDINS8...Show more lines
+Nel COBOL:
+COBOL101 MENUFMT.2   05 SCELTA PIC 9.3 401 ARTINS.5   05 CODART PIC 9(5).6   ...7 801 ORDINS.9   05 CODCLI PIC 9(5).10   ...Show more lines
+e richiamarli con:
+COBOL1WRITE MENUFMT.2READ VIDEOFILE.3 4WRITE ARTINS.5READ VIDEOFILE.6 7WRITE ORDINS.8READ VIDEOFILE.Show more lines
+
+8. Collegamento dei PRTF
+Per i file di stampa il meccanismo è analogo:
+COBOL1SELECT STAMPA ASSIGN TO PRINTER.Show more lines
+COBOL1FD STAMPA.2 301 ARTSTAR.4   05 CODART      PIC 9(5).5   05 DESART      PIC X(25).6   05 PRZART      PIC 9(6).7   05 IMPUNIT     PIC 9(4)V99).8   05 QUANTART    PIC 9(6).Show more lines
+Scrittura:
+COBOL1MOVE REC-ART TO ARTSTAR.2WRITE ARTSTAR.Show more lines
+e il PRTF formatterà automaticamente la pagina secondo il DDS.
+Questa è l'architettura classica IBM i: PF (dati) + DSPF (schermi) + PRTF (stampe) + programmi COBOL/400 che dialogano tramite i record format definiti nei DDS.
+Provide your feedback on BizChatYou said: Come collegare un PRTF a un report?
+Copilot said: In IBM i (AS/400), un PRTF (Printer File) viene collegato a un report COBOL esattamente come un DSPF: attraverso la FILE-CONTROL, la FD e il nome del Record Format definito nel DDS del PRTF.
+1. Definizione del PRTF
+Esempio: ORDRPT
+COBOLdds isn’t fully supported. Syntax highlighting is based on COBOL.1A          R ORDRPT2A                                      SKIPB(1)3A            CODCLI         5P 0      24A            NOME          25A       105A            DESCRIZ       14A       406A            QTA            4P 0      587A            IMPUNI         6P 2      688A            TOTALE         9P 2      80Show more lines
+Compilazione:
+Lisp1CRTPRTF FILE(MIALIB/ORDRPT)2        SRCFILE(MIALIB/QDDSSRC)3        SRCMBR(ORDRPT)Show more lines
+
+2. Collegamento nel COBOL
+FILE-CONTROL
+COBOL1ENVIRONMENT DIVISION.2INPUT-OUTPUT SECTION.3 4FILE-CONTROL.5 6    SELECT STAMPA7           ASSIGN TO PRINTER.Show more lines
+
+FILE SECTION
+La struttura COBOL deve corrispondere al Record Format DDS.
+COBOL1FD STAMPA.2 301 ORDRPT.4   05 CODCLI      PIC 9(5).5   05 NOME        PIC X(25).6   05 DESCRIZ     PIC X(14).7   05 QTA         PIC 9(4).8   05 IMPUNI      PIC 9(4)V99.9   05 TOTALE      PIC 9(7)V99.Show more lines
+
+3. Scrittura del report
+Nel programma COBOL:
+COBOL1OPEN OUTPUT STAMPA2 3MOVE ORD-CODCLI    TO CODCLI4MOVE ORD-NOME      TO NOME5MOVE ORD-DESCRIZ   TO DESCRIZ6MOVE ORD-QTA       TO QTA7MOVE ORD-IMPUNI    TO IMPUNI8 9COMPUTE TOTALE = QTA * IMPUNI10 11WRITE ORDRPT12 13CLOSE STAMPAShow more lines
+Ogni WRITE ORDRPT produce una riga nel report.
+
+4. Intestazione del report
+Nel PRTF puoi definire un formato intestazione:
+COBOLdds isn’t fully supported. Syntax highlighting is based on COBOL.1A          R HEADER2A                                      SKIPB(1)3A                                  1 25'ELENCO ORDINI CLIENTI'4 5A          R DETAIL6A            CODCLI         5P 0      27A            NOME          25A       108A            DESCRIZ       14A       409A            QTA            4P 0     5810A            IMPUNI         6P 2     68Show more lines
+Nel COBOL:
+COBOL1WRITE HEADER2WRITE DETAILShow more lines
+
+5. Report Master-Detail (Ordini + Articoli)
+Caso tipico:
+Plain Text1Cliente 10001 Rossi Mario2 3Articolo          Qta   Importo4--------------------------------5Penna Blu          10      1,506Matita HB           5      0,907Evidenziatore       2      2,508 9Totale Ordine              22,50Show more lines
+PRTF:
+Plain Textdds isn’t fully supported. Syntax highlighting is based on Plain Text.1A          R TESTATA2A          R DETTAGLIO3A          R TOTALIShow more lines
+COBOL:
+COBOL1WRITE TESTATA2 3PERFORM UNTIL FINE-ORDINE4 5   WRITE DETTAGLIO6 7END-PERFORM8 9WRITE TOTALIShow more lines
+
+6. Associazione del PRTF al programma
+Durante la compilazione del COBOL:
+Lisp1CRTCBLPGM PGM(MIALIB/ORDSTA)2          SRCFILE(MIALIB/QCBLSRC)Show more lines
+Quando esegui:
+Lisp1CALL PGM(MIALIB/ORDSTA)Show more lines
+IBM i utilizza automaticamente il PRTF omonimo dichiarato nel programma.
+Per vedere lo spool:
+Lisp1WRKSPLFShow more lines
+
+Schema finale
+Plain Text1PF ARTICOLI2      |3      +--> ARTCAR4      +--> ARTVAR5      +--> ARTVISU6      +--> ARTSTA ------> PRTF ARTSTAR7 8PF ORDINI9      |10      +--> ORDINS11      +--> ORDSTA ------> PRTF ORDSTAR12      +--> ARTACC ------> PRTF BOLLARShow more lines
+Questa è la struttura classica COBOL/400: PF per i dati, DSPF per l'interfaccia utente e PRTF per i report/spool di stampa.
+Provide your feedback on BizChatYou said: Come gestire i tasti funzione
+Copilot said: In COBOL/400 i tasti funzione (F3, F4, F5, F12, ecc.) vengono definiti nel DSPF e gestiti nel programma COBOL attraverso gli indicatori di funzione restituiti dal display file.
+1. Definizione nel DSPF
+Esempio:
+Plain Textdds isn’t fully supported. Syntax highlighting is based on Plain Text.1A                                      CF03(03)2A                                      CF05(05)3A                                      CF12(12)4 5A          R MENUFMT6A                                  2 20'GESTIONE MAGAZZINO'7 8A                                 20  2'F3=Esci  F5=Aggiorna F12=Indietro'9 10A            SCELTA         1Y 0B 10 20Show more lines
+Significato:
+Plain Text1CF03 = F32CF05 = F53CF12 = F12Show more lines
+
+2. Dichiarazione nel COBOL
+Nel Working-Storage si definisce l'area indicatori.
+COBOL1WORKING-STORAGE SECTION.2 301  INDICATORI.4    05 IN03 PIC X.5    05 IN05 PIC X.6    05 IN12 PIC X.Show more lines
+Oppure, nei programmi COBOL/400 più tradizionali, si utilizzano direttamente gli indicatori del file workstation.
+
+3. Acquisizione della videata
+COBOL1WRITE MENUFMT.2READ VIDEOFILE.Show more lines
+oppure
+COBOL1DISPLAY MENUFMT.2ACCEPT MENUFMT.Show more lines
+
+4. Controllo del tasto premuto
+F3 = Uscita
+COBOL1IF IN03 = '1'2   GO TO FINE-PROGRAMMA3END-IF.Show more lines
+oppure
+COBOL1IF IND032   GO TO FINE-PROGRAMMA3END-IF.Show more lines
+
+F12 = Ritorno al menu
+COBOL1IF IN12 = '1'2   EXIT PARAGRAPH3END-IF.Show more lines
+
+F5 = Aggiornamento
+COBOL1IF IN05 = '1'2 3   PERFORM RILEGGI-DATI4 5END-IF.Show more lines
+
+Esempio completo: Visualizzazione Articoli
+DSPF
+COBOLdds isn’t fully supported. Syntax highlighting is based on COBOL.1A                                      CF03(03)2A                                      CF12(12)3 4A          R ARTVIS5A                                  2 20'VISUALIZZAZIONE ARTICOLI'6 7A                                  5 10'CODICE'8 9A            CODART         5Y 0B 5 2510 11A                                  7 10'DESCRIZIONE'12A            DESART        25A  O 7 2513 14A                                  9 10'GIACENZA'15A            QUANTART       6Y 0O 9 2516 17A                                 22  2'F3=FINE  F12=MENU'Show more lines
+
+COBOL
+COBOL1VISUALIZZA.2 3    PERFORM UNTIL FINE = 'S'4 5       WRITE ARTVIS6       READ VIDEOFILE7 8       IF IN03 = '1'9          MOVE 'S' TO FINE10       ELSE11          IF IN12 = '1'12             EXIT PERFORM13          END-IF14       END-IF15 16       READ ARTICOLI17          INVALID KEY18              DISPLAY "ARTICOLO INESISTENTE"19       END-READ20 21    END-PERFORM.Show more lines
+
+Tasti funzione più usati
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TastoUtilizzoF3Uscita dal programmaF4Prompt/RicercaF5AggiornaF6InserisciF7Pagina precedenteF8Pagina successivaF9RipristinaF10Funzioni aggiuntiveF11Vista alternativaF12Annulla/RitornaEnterConferma dati
+
+Esempio Menu Professionale IBM i
+COBOLdds isn’t fully supported. Syntax highlighting is based on COBOL.1A                                      CF03(03)2A                                      CF12(12)3 4A          R MENUFMT5A                                  2 25'GESTIONE ORDINI'6 7A                                  5 20'1 Inserimento Articoli'8A                                  6 20'2 Variazione Articoli'9A                                  7 20'3 Inserimento Ordini'10A                                  8 20'4 Stampa Articoli'11A                                  9 20'5 Stampa Ordini'12 13A                                 15 20'Scelta . . . . . . :'14A            SCELTA         1Y 0B 15 4515 16A                                 24  2'F3=Esci   F12=Annulla'Show more lines
+COBOL:
+COBOL1PERFORM UNTIL FINE = 'S'2 3   WRITE MENUFMT4   READ VIDEOFILE5 6   IF IN03 = '1'7      MOVE 'S' TO FINE8   ELSE9 10      EVALUATE SCELTA11 12         WHEN 113              CALL "ARTCAR"14 15         WHEN 216              CALL "ARTVAR"17 18         WHEN 319              CALL "ORDINS"20 21         WHEN 422              CALL "ARTSTA"23 24         WHEN 525              CALL "ORDSTA"26 27      END-EVALUATE28 29   END-IF30 31END-PERFORM.Show less
+Questo è il metodo classico utilizzato nelle applicazioni COBOL/400 su AS/400 per gestire i tasti funzione all'interno dei DSPF.
+Provide your feedback on BizChatYou said: Come gestire più tasti funzione contemporaneamente?
+Copilot said: In COBOL/400 puoi gestire più tasti funzione contemporaneamente definendoli nel DSPF e verificando gli indicatori restituiti dopo la READ della workstation.
+DSPF con più tasti funzione
+COBOLdds isn’t fully supported. Syntax highlighting is based on COBOL.1A                                      CF03(03)2A                                      CF04(04)3A                                      CF05(05)4A                                      CF06(06)5A                                      CF12(12)6 7A          R ARTINS8 9A            CODART         5Y 0B  5 2010A            DESART        25A  B  7 2011 12A                                 24  213A                                      'F3=Esci'14A                                 24 1515A                                      'F4=Ricerca'16A                                 24 3017A                                      'F5=Aggiorna'18A                                 24 4519A                                      'F6=Nuovo'20A                                 24 6021A                                      'F12=Annulla'Show more lines
+
+COBOL: gestione con EVALUATE
+Dopo la lettura della videata:
+COBOL1WRITE ARTINS.2READ VIDEOFILE.Show more lines
+si controllano i tasti premuti.
+COBOL1EVALUATE TRUE2 3   WHEN IN03 = '1'4        PERFORM USCITA5 6   WHEN IN04 = '1'7        PERFORM RICERCA-ARTICOLO8 9   WHEN IN05 = '1'10        PERFORM AGGIORNA-DATI11 12   WHEN IN06 = '1'13        PERFORM NUOVO-ARTICOLO14 15   WHEN IN12 = '1'16        PERFORM ANNULLA17 18   WHEN OTHER19        PERFORM ELABORA-DATI20 21END-EVALUATE.Show more lines
+Questa è la tecnica più pulita e leggibile.
+
+Gestione prioritaria dei tasti
+Normalmente si assegna una priorità.
+COBOL1IF IN03 = '1'2 3   GO TO FINE-PROGRAMMA4 5ELSE6 7   IF IN12 = '1'8 9      GO TO MENU10 11   ELSE12 13      IF IN05 = '1'14 15          PERFORM AGGIORNA16 17      END-IF18 19   END-IF20 21END-IF.22 Show more lines
+In questo caso:
+
+F3 ha priorità assoluta
+F12 seconda priorità
+F5 terza priorità
+
+
+Ciclo tipico di una maschera
+COBOL1PERFORM UNTIL FINE = 'S'2 3   WRITE MENUFMT4   READ VIDEOFILE5 6   EVALUATE TRUE7 8      WHEN IN03 = '1'9           MOVE 'S' TO FINE10 11      WHEN IN05 = '1'12           PERFORM AGGIORNA13 14      WHEN IN12 = '1'15           EXIT PERFORM16 17      WHEN OTHER18           PERFORM ELABORA-SCELTA19 20   END-EVALUATE21 22END-PERFORM.Show more lines
+
+Uso dei CA anziché CF
+Per tasti di comando globali è frequente usare:
+COBOLdds isn’t fully supported. Syntax highlighting is based on COBOL.1A                                      CA03(03)2A                                      CA12(12)Show more lines
+dove:
+
+CFxx restituisce il controllo al programma dopo Enter
+CAxx interrompe immediatamente la videata e ritorna al programma
+
+Esempio:
+COBOLdds isn’t fully supported. Syntax highlighting is based on COBOL.1A                                      CA03(03)2A                                      CA12(12)Show more lines
+COBOL:
+COBOL1READ VIDEOFILE2 3IF IN03 = '1'4   STOP RUN5END-IF6 7IF IN12 = '1'8   GO TO MENU9END-IFShow more lines
+
+Applicazione al tuo progetto
+Per il sistema ARTICOLI/ORDINI consiglio:
+Plain Text1F3  = Uscita programma2F4  = Ricerca articolo3F5  = Aggiorna videata4F6  = Nuovo inserimento5F8  = Visualizza successivo6F10 = Stampa7F12 = Ritorna al menuShow more lines
+con una gestione centralizzata:
+COBOL1EVALUATE TRUE2 3   WHEN IN03 = '1'4        PERFORM USCITA5 6   WHEN IN04 = '1'7        PERFORM RICERCA8 9   WHEN IN05 = '1'10        PERFORM AGGIORNA11 12   WHEN IN06 = '1'13        PERFORM INSERIMENTO14 15   WHEN IN08 = '1'16        PERFORM SUCCESSIVO17 18   WHEN IN10 = '1'19        PERFORM STAMPA20 21   WHEN IN12 = '1'22        PERFORM MENU23 24   WHEN OTHER25        PERFORM ELABORA26 27END-EVALUATE
