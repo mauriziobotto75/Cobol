@@ -1,0 +1,78 @@
+ARTSTAM  DFHMSD TYPE=&SYSPARM,
+                MODE=INOUT,
+                LANG=COBOL,
+                STORAGE=AUTO,
+                TIOAPFX=YES
+
+ARTSTA   DFHMDI SIZE=(24,80),
+                LINE=1,
+                COLUMN=1
+
+*----------------------------------------------------------------*
+* TITOLO
+*----------------------------------------------------------------*
+
+         DFHMDF POS=(02,25),
+                LENGTH=25,
+                ATTRB=(PROT,BRT),
+                INITIAL='STAMPA ANAGRAFICA ARTICOLI'
+
+*----------------------------------------------------------------*
+* CODICE ARTICOLO DA
+*----------------------------------------------------------------*
+
+         DFHMDF POS=(05,05),
+                LENGTH=18,
+                ATTRB=(PROT),
+                INITIAL='CODICE DA :'
+
+CODDA    DFHMDF POS=(05,25),
+                LENGTH=5,
+                ATTRB=(UNPROT,IC)
+
+*----------------------------------------------------------------*
+* CODICE ARTICOLO A
+*----------------------------------------------------------------*
+
+         DFHMDF POS=(07,05),
+                LENGTH=18,
+                ATTRB=(PROT),
+                INITIAL='CODICE A  :'
+
+CODA     DFHMDF POS=(07,25),
+                LENGTH=5,
+                ATTRB=(UNPROT)
+
+*----------------------------------------------------------------*
+* DESCRIZIONE
+*----------------------------------------------------------------*
+
+         DFHMDF POS=(09,05),
+                LENGTH=18,
+                ATTRB=(PROT),
+                INITIAL='DESCRIZIONE :'
+
+DESART   DFHMDF POS=(09,25),
+                LENGTH=25,
+                ATTRB=(UNPROT)
+
+*----------------------------------------------------------------*
+* MESSAGGI
+*----------------------------------------------------------------*
+
+MSG      DFHMDF POS=(22,02),
+                LENGTH=60,
+                ATTRB=(PROT,BRT)
+
+*----------------------------------------------------------------*
+* FUNZIONI
+*----------------------------------------------------------------*
+
+         DFHMDF POS=(24,02),
+                LENGTH=70,
+                ATTRB=(PROT),
+                INITIAL='ENTER=STAMPA  PF3=FINE  PF12=MENU'
+
+         DFHMSD TYPE=FINAL
+
+         END
