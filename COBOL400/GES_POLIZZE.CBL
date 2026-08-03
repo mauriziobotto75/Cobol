@@ -6,20 +6,20 @@
 
       FILE-CONTROL.
 
-           SELECT*MENUFILE
+           SELECT MENUFILE
                   ASSIGN *O WORKSTN.
 
        DATA DIVISION.
        FILE SECTION.
 
-       FD ME*UFILE.
+       FD MENUFILE.
 
        01 MENUGES-R.
           05 SCELTA          PIC X.
-          05 MSG             PIC X(50).*
+          05 MSG             PIC X(50).
        WORKING-STORAGE SECTION.
 
-       01 WS-FINE            PIC X *ALUE 'N'.
+       01 WS-FINE            PIC X VALUE 'N'.
 
           88 FINE-PROGR*MMA VALUE 'S'.
 
