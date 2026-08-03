@@ -1,0 +1,68 @@
+IDENTIFICATION DIVISION.
+PROGRAM-ID. STAAVV.
+
+WORKING-STORAGE SECTION.
+
+01 WS-COD-POL       PIC X(10).
+01 WS-NOME          PIC X(40).
+01 WS-SCADENZA      PIC X(10).
+01 WS-IMPORTO       PIC S9(7)V99 COMP-3.
+
+EXEC SQL
+ INCLUDE SQLCA
+END-EXEC.
+
+PROCEDURE DIVISION.
+
+MAIN-PARA.
+
+    EXEC SQL
+
+       DECLARE CAVV CURSOR FOR
+
+       SELECT
+              COD_POLIZZA,
+              NOME_CLIENTE,
+              SCADENZA,
+              IMPORTO
+
+       FROM POLIZZE
+
+       WHERE STATO_PAGAMENTO <> 'P'
+          OR STATO_PAGAMENTO IS NULL
+
+       ORDER BY SCADENZA
+
+    END-EXEC
+
+    EXEC SQL OPEN CAVV END-EXEC
+
+    PERFORM UNTIL SQLCODE = 100
+
+       EXEC SQL
+
+          FETCH CAVV
+
+             INTO
+                :WS-COD-POL,
+                :WS-NOME,
+                :WS-SCADENZA,
+                :WS-IMPORTO
+
+       END-EXEC
+
+       IF SQLCODE = 0
+
+          EXEC CICS WRITEQ TD
+               QUEUE('AVVISI')
+               FROM(WS-COD-POL)
+          END-EXEC
+
+       END-IF
+
+    END-PERFORM
+
+    EXEC SQL CLOSE CAVV END-EXEC
+
+    EXEC CICS RETURN
+    END-EXEC.
