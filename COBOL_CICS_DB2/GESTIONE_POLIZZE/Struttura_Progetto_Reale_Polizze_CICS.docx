@@ -1,0 +1,23 @@
+ POLMENU   Menu principale
+
+GESPOL    Gestione anagrafica
+
+INSPOL    Inserimento
+VARPOL    Variazione
+ANNPOL    Annullamento
+VISUPOL   Visualizzazione
+
+RECPAG    Registrazione pagamento
+
+POLSTA    Stampa polizze
+
+STAAVV    Stampa avvisi
+
+POLMAP    Mapset BMS
+
+POLCOMM   COMMAREA
+
+DCLPOL    DCLGEN DB2
+
+DBRM      Moduli SQL
+PLAN      Piano DB2
