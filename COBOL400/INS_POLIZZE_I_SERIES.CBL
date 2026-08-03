@@ -1,5 +1,5 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. INSPOL.
+       PROGRAM-ID. INSPOL_I_SERIES.
 
        ENVIRONMENT DIVISION.
 
@@ -59,11 +59,33 @@
 
            PERFORM UNTIL WS-FINE = 'S'
 
-              MOVE SPACES TO V-MSG
+              EXEC SQL
 
-              WRITE INSPOLR
-              READ VIDEOFILE
+   INSERT INTO POLIZZE
+   (
+      COD_POLIZZA,
+      NOME_CLIENTE,
+      INDIRIZZO,
+      IMPORTO,
+      SCADENZA,
+      SIGLA_AUTO,
+      NUM_CAVALLI,
+      STATO_PAGAMENTO
+   )
 
+   VALUES
+   (
+      :V-CODPOL,
+      :V-NOMCLI,
+      :V-INDIRIZ,
+      :V-IMPORTO,
+      :V-SCADENZA,
+      :V-SIGAUTO,
+      :V-NCAVALLI,
+      'N'
+   )
+
+END-EXEC.
               IF IN03
 
                  MOVE 'S'
