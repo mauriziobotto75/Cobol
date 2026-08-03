@@ -1,41 +1,83 @@
-IDENTIFICATION DIVISION.
-PROGRAM-ID. VISUPOL.
+ 
 
-DATA DIVISION.
+        IDENTIFICATION DIVISION.
+       PROGRAM-ID. VISUPOL.
 
-WORKING-STORAGE SECTION.
+       ENVIRONMENT DIVISION.
 
-COPY DFHAID.
-COPY DFHBMSCA.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
 
-COPY MAPVISU.
-COPY MAPVISUI.
+       COPY DFHAID.
+       COPY DFHBMSCA.
 
-EXEC SQL
-   INCLUDE SQLCA
-END-EXEC.
+       COPY MAPVISU.
+       COPY MAPVISUI.
 
-PROCEDURE DIVISION.
+       COPY POLCOMM.
+       01 WS-COSTANTI.
 
-MAIN.
+          05 WS-PGM-MENU
+                PIC X(8)
+                VALUE 'POLMENU'.
 
-    EXEC CICS RECEIVE
-         MAP('MAPVISU')
-         MAPSET('POLMAP')
-    END-EXEC
+          05 WS-MSG-NOTFOUND
+                PIC X(30)
+                VALUE 'POLIZZA NON PRESENTE'.
 
-    MOVE VICODOI TO HV-CODICE
+          05 WS-MSG-OK
+                PIC X(30)
+                VALUE 'POLIZZA TROVATA'.
+       LINKAGE SECTION.
 
-    EXEC SQL
-       SELECT ...
-    END-EXEC
+       01 DFHCOMMAREA.
+          05 LK-DATI PIC X(256).
+       PROCEDURE DIVISION.
 
-    MOVE HV-NOME TO VINOMEO
+       MAIN.
 
-    EXEC CICS SEND
-         MAP('MAPVISU')
-         MAPSET('POLMAP')
-    END-EXEC
+           IF EIBCALEN = 0
+              PERFORM 1000-SEND-FIRST
+              GOBACK
+           END-IF
 
-    EXEC CICS RETURN
-    END-EXEC.
+           PERFORM 2000-RECEIVE
+
+           PERFORM 3000-CHECK-PFKEY
+
+           PERFORM 4000-SELECT-POLIZZA
+
+           PERFORM 5000-SEND-MAP
+
+           EXEC CICS RETURN
+           END-EXEC.
+       1000-SEND-FIRST.
+
+           MOVE LOW-VALUES
+             TO MAPVISUO
+
+           MOVE 'VISUALIZZAZIONE POLIZZA'
+             TO VIMSGO
+
+           EXEC CICS SEND
+                MAP('MAPVISU')
+                MAPSET('POLMAP')
+                ERASE
+                CURSOR
+           END-EXEC.
+       2000-RECEIVE.
+
+           EXEC CICS RECEIVE
+                MAP('MAPVISU')
+                MAPSET('POLMAP')
+           END-EXEC.
+
+           MOVE VICODOI
+             TO COD-POLIZZA.
+       EXEC SQL
+            INCLUDE SQLCA
+       END-EXEC.
+
+       EXEC SQL
+            INCLUDE DCLPOL
+       END-EXEC.
