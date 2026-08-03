@@ -1,5 +1,5 @@
        IDENTIFICATI*N DIVISION.
-       PROGRAM-ID. GES*OL.
+       PROGRAM-ID. GES_POLIZZE.
 
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
@@ -56,32 +56,45 @@
 
        ELABORA-SCELTA.
 
-              EVALUATE WS-SCELTA
+          CALL 'INSPOL'
 
-                 WHEN '1'
-
-                   CALL 'INSPOL'
-
-              WHEN*'2'
-
-                   CALL 'VARP*L'
-
-              WHEN '3'
-
-                   CALL 'ANNPOL'
-
-              WHEN '4'
-
-                   CALL 'VISUPOL'
-
-              WHEN*'5'
-
-                   CALL 'POLS*A'
-
-              WHEN OTHER
-
-                   MOVE
-                       'SCELTA NON VALIDA'
-                   TO MSG
-
-           END-EVAL*ATE.
+USING AREA-COMUNE
+ 
+ 
+01 AREA-COMUNE.
+ 
+05 UTENTE PIC X(10).
+ 
+05 COD-POLIZZA PIC X(10).
+ 
+05 MESSAGGIO PIC X(50).
+ 
+WHEN '1'
+ 
+CALL 'INSPOL'
+ 
+USING AREA-COMUNE
+ 
+WHEN '2'
+ 
+CALL 'VARPOL'
+ 
+USING AREA-COMUNE
+ 
+WHEN '3'
+ 
+CALL 'ANNPOL'
+ 
+USING AREA-COMUNE
+ 
+WHEN '4'
+ 
+CALL 'VISUPOL'
+ 
+USING AREA-COMUNE
+ 
+WHEN '5'
+ 
+CALL 'POLSTA'
+ 
+USING AREA-COMUNE
