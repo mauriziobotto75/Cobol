@@ -1,0 +1,11 @@
+CREATE TABLE RATEIZZAZIONI
+(
+    NUMRATA        INTEGER      NOT NULL,
+    NUMFAT         INTEGER,
+    NR_RATA        INTEGER,
+    SCADENZA       DATE,
+    IMPORTO        DECIMAL(11,2),
+    STATO          CHAR(1),
+
+    PRIMARY KEY (NUMRATA)
+);
