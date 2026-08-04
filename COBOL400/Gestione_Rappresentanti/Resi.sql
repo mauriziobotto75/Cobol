@@ -1,0 +1,12 @@
+CREATE TABLE RESI
+(
+    NUMRESO        INTEGER      NOT NULL,
+    DATARESO       DATE,
+    CODCLI         CHAR(5),
+    NUMFAT         INTEGER,
+    CODART         CHAR(6),
+    QUANTITA       INTEGER,
+    IMPORTO_RESO   DECIMAL(11,2),
+
+    PRIMARY KEY (NUMRESO)
+);
