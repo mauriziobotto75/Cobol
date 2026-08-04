@@ -1,0 +1,11 @@
+CREATE TABLE NOTE_CREDITO
+(
+    NUMNC         INTEGER      NOT NULL,
+    DATANC        DATE,
+    CODCLI        CHAR(5),
+    NUMFAT        INTEGER,
+    NUMRESO       INTEGER,
+    IMPORTO       DECIMAL(11,2),
+
+    PRIMARY KEY (NUMNC)
+);
