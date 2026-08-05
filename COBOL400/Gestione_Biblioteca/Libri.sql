@@ -1,0 +1,12 @@
+CREATE TABLE LIBRI
+(
+    CODLIB       CHAR(6)      NOT NULL,
+    TITOLO       VARCHAR(60),
+    AUTORE       VARCHAR(40),
+    EDITORE      VARCHAR(40),
+    ANNOED       SMALLINT,
+    GENERE       VARCHAR(20),
+    DISPONIBILE  CHAR(1),
+
+    PRIMARY KEY (CODLIB)
+);
