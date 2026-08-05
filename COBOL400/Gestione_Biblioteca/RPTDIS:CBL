@@ -1,0 +1,118 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. RPTDIS.
+
+       DATA DIVISION.
+
+       WORKING-STORAGE SECTION.
+
+       EXEC SQL
+            INCLUDE SQLCA
+       END-EXEC.
+
+       01 HV-CODLIB       PIC X(6).
+       01 HV-TITOLO       PIC X(60).
+       01 HV-AUTORE       PIC X(40).
+       01 HV-EDITORE      PIC X(40).
+       01 HV-ANNO         PIC 9(4).
+       01 HV-GENERE       PIC X(20).
+
+       01 WS-TOT-DIS      PIC 9(5) VALUE 0.
+
+       PROCEDURE DIVISION.
+
+       MAIN.
+
+           EXEC SQL
+
+              DECLARE CDIS CURSOR FOR
+
+                 SELECT
+                        CODLIB,
+                        TITOLO,
+                        AUTORE,
+                        EDITORE,
+                        ANNOED,
+                        GENERE
+
+                 FROM LIBRI
+
+                 WHERE DISPONIBILE = 'S'
+
+                 ORDER BY AUTORE,
+                          TITOLO
+
+           END-EXEC
+
+           EXEC SQL
+                OPEN CDIS
+           END-EXEC
+
+           DISPLAY
+           '======================================================'
+
+           DISPLAY
+           'ELENCO LIBRI DISPONIBILI'
+
+           DISPLAY
+           '======================================================'
+
+           PERFORM UNTIL SQLCODE = 100
+
+              EXEC SQL
+
+                 FETCH CDIS
+
+                 INTO
+                    :HV-CODLIB,
+                    :HV-TITOLO,
+                    :HV-AUTORE,
+                    :HV-EDITORE,
+                    :HV-ANNO,
+                    :HV-GENERE
+
+              END-EXEC
+
+              IF SQLCODE = 0
+
+                 ADD 1 TO WS-TOT-DIS
+
+                 DISPLAY
+                 '------------------------------------------'
+
+                 DISPLAY
+                 'CODICE   : ' HV-CODLIB
+
+                 DISPLAY
+                 'TITOLO   : ' HV-TITOLO
+
+                 DISPLAY
+                 'AUTORE   : ' HV-AUTORE
+
+                 DISPLAY
+                 'EDITORE  : ' HV-EDITORE
+
+                 DISPLAY
+                 'ANNO     : ' HV-ANNO
+
+                 DISPLAY
+                 'GENERE   : ' HV-GENERE
+
+              END-IF
+
+           END-PERFORM
+
+           EXEC SQL
+                CLOSE CDIS
+           END-EXEC
+
+           DISPLAY
+           '======================================================'
+
+           DISPLAY
+           'TOTALE LIBRI DISPONIBILI : '
+           WS-TOT-DIS
+
+           DISPLAY
+           '======================================================'
+
+           GOBACK.
