@@ -188,12 +188,19 @@
       *=======================================
       * SCRITTURA RECORD NON EVASO
       *=======================================
-
-       SCRIVI-NON-EVASA.
+             SCRIVI-NON-EVASA.
 
            MOVE PR-CODAG  TO LS-CODAG
            MOVE PR-NPOSTI TO LS-NPOSTI
            MOVE PR-DATAP  TO LS-DATAP
 
-           WRITE REC-LISTA.
+           WRITE REC-LISTA
+
+           DISPLAY '********************************'
+           DISPLAY '* PRENOTAZIONE NON EVASA       *'
+           DISPLAY '********************************'
+           DISPLAY 'AGENZIA : ' LS-CODAG
+           DISPLAY 'POSTI   : ' LS-NPOSTI
+           DISPLAY 'DATA    : ' LS-DATAP
+           DISPLAY ' '.
  
