@@ -8,8 +8,7 @@
        FILE-CONTROL.
 
            SELECT FILE-PRENOTA ASSIGN TO PRENOTA
-               ORGANIZATION IS SEQUENTIAL
-               ACCESS MODE IS SEQUENTIAL.
+               ORGANIZATION IS SEQUENTIAL.
 
            SELECT FILE-LISTA ASSIGN TO LISTA
                ORGANIZATION IS SEQUENTIAL.
@@ -18,73 +17,86 @@
 
        FILE SECTION.
 
-      *---------------------------------------
-      * FILE PRENOTAZIONI
-      *---------------------------------------
+      *=========================================
+      * FILE INPUT PRENOTAZIONI
+      *=========================================
        FD FILE-PRENOTA.
 
        01 REC-PRENOTA.
-          05 PR-TIPO           PIC X.
-          05 PR-NPOSTI         PIC 9(4).
-          05 PR-CODAG          PIC X(4).
-          05 PR-DATAP          PIC 9(8).
+          05 PR-TIPO          PIC X.
+          05 PR-NPOSTI        PIC 9(4).
+          05 PR-CODAG         PIC X(4).
+          05 PR-DATAP         PIC 9(8).
 
-      *---------------------------------------
-      * FILE PRENOTAZIONI NON EVASE
-      *---------------------------------------
+      *=========================================
+      * FILE OUTPUT REPORT
+      *=========================================
        FD FILE-LISTA.
 
-       01 REC-LISTA.
-          05 LS-CODAG          PIC X(4).
-          05 LS-NPOSTI         PIC ZZZ9.
-          05 LS-DATAP          PIC 9(8).
+       01 REC-STAMPA          PIC X(50).
 
        WORKING-STORAGE SECTION.
 
-       77 FINE-FILE            PIC X VALUE 'N'.
+      *=========================================
+      * VARIABILI DI CONTROLLO
+      *=========================================
+       77 FINE-FILE           PIC X VALUE 'N'.
 
-       77 TOT-POSTI            PIC 9(5).
-       77 QUOTA-POSTI          PIC 9(5).
-       77 RESTO                PIC 9.
+       77 TOT-POSTI           PIC 9(5).
+       77 QUOTA-POSTI         PIC 9(5).
+       77 RESTO               PIC 9.
 
-       77 DISP-FINESTRINO      PIC 9(5).
-       77 DISP-CENTRO          PIC 9(5).
-       77 DISP-CORRIDOIO       PIC 9(5).
+       77 DISP-FINESTRINO     PIC 9(5).
+       77 DISP-CENTRO         PIC 9(5).
+       77 DISP-CORRIDOIO      PIC 9(5).
 
-      *---------------------------------------
-      * TESTATA STAMPE
-      *---------------------------------------
+      *=========================================
+      * RECORD DI DETTAGLIO STAMPA
+      *=========================================
+       01 RIGA-DETT.
+          05 D-CODAG          PIC X(4).
+          05 FILLER           PIC X(6) VALUE SPACES.
+          05 D-NPOSTI         PIC ZZZ9.
+          05 FILLER           PIC X(6) VALUE SPACES.
+          05 D-DATA           PIC 9(8).
 
-       01 MSG-ERRORE.
-          05 FILLER PIC X(35)
-             VALUE 'NUMERO POSTI NON MULTIPLO DI 3'.
+      *=========================================
+      * TESTATE REPORT
+      *=========================================
+       01 TESTATA-1.
+          05 FILLER PIC X(50)
+             VALUE 'LISTA PRENOTAZIONI NON EVASE'.
+
+       01 TESTATA-2.
+          05 FILLER PIC X(50)
+             VALUE
+             'AGENZIA   POSTI   DATA PRENOTAZIONE'.
+
+       01 TESTATA-3.
+          05 FILLER PIC X(50)
+             VALUE
+             '-------   -----   -----------------'.
 
        PROCEDURE DIVISION.
 
-       MAIN-PROCEDURE.
-
-      *---------------------------------------
-      * ACQUISIZIONE TOTALE POSTI
-      *---------------------------------------
+      *=========================================
+      * MAIN
+      *=========================================
+       MAIN.
 
            PERFORM ACQUISISCI-POSTI
 
-      *---------------------------------------
-      * APERTURA FILE
-      *---------------------------------------
-
-           OPEN INPUT FILE-PRENOTA
+           OPEN INPUT  FILE-PRENOTA
                 OUTPUT FILE-LISTA
 
-      *---------------------------------------
-      * PRIMA LETTURA
-      *---------------------------------------
+      * Scrittura intestazione report
+
+           WRITE REC-STAMPA FROM TESTATA-1
+           WRITE REC-STAMPA FROM SPACES
+           WRITE REC-STAMPA FROM TESTATA-2
+           WRITE REC-STAMPA FROM TESTATA-3
 
            PERFORM LEGGI-PRENOTA
-
-      *---------------------------------------
-      * ELABORAZIONE FILE
-      *---------------------------------------
 
            PERFORM UNTIL FINE-FILE = 'S'
 
@@ -94,7 +106,7 @@
 
                     IF PR-NPOSTI <= DISP-FINESTRINO
                        SUBTRACT PR-NPOSTI
-                           FROM DISP-FINESTRINO
+                          FROM DISP-FINESTRINO
                     ELSE
                        PERFORM SCRIVI-NON-EVASA
                     END-IF
@@ -103,7 +115,7 @@
 
                     IF PR-NPOSTI <= DISP-CENTRO
                        SUBTRACT PR-NPOSTI
-                           FROM DISP-CENTRO
+                          FROM DISP-CENTRO
                     ELSE
                        PERFORM SCRIVI-NON-EVASA
                     END-IF
@@ -112,7 +124,7 @@
 
                     IF PR-NPOSTI <= DISP-CORRIDOIO
                        SUBTRACT PR-NPOSTI
-                           FROM DISP-CORRIDOIO
+                          FROM DISP-CORRIDOIO
                     ELSE
                        PERFORM SCRIVI-NON-EVASA
                     END-IF
@@ -120,7 +132,8 @@
                  WHEN OTHER
 
                     DISPLAY
-                    'TIPO PRENOTAZIONE NON VALIDO'
+                    'TIPO PRENOTAZIONE ERRATO : '
+                    PR-TIPO
 
               END-EVALUATE
 
@@ -128,36 +141,30 @@
 
            END-PERFORM
 
-      *---------------------------------------
-      * CHIUSURA FILE
-      *---------------------------------------
-
            CLOSE FILE-PRENOTA
                  FILE-LISTA
 
-      *---------------------------------------
-      * RIEPILOGO
-      *---------------------------------------
+      * Riepilogo finale
 
            DISPLAY ' '
-           DISPLAY 'POSTI RESIDUI'
+           DISPLAY 'POSTI RIMASTI DISPONIBILI'
+           DISPLAY '-------------------------'
            DISPLAY 'FINESTRINO : ' DISP-FINESTRINO
            DISPLAY 'CENTRO     : ' DISP-CENTRO
            DISPLAY 'CORRIDOIO  : ' DISP-CORRIDOIO
 
            STOP RUN.
 
-      *=======================================
-      * ACQUISIZIONE POSTI
-      *=======================================
-
+      *=========================================
+      * ACQUISIZIONE POSTI TOTALI
+      *=========================================
        ACQUISISCI-POSTI.
 
            MOVE 1 TO RESTO
 
            PERFORM UNTIL RESTO = 0
 
-              DISPLAY 'INSERIRE TOTALE POSTI: '
+              DISPLAY 'INSERIRE NUMERO TOTALE POSTI : '
               ACCEPT TOT-POSTI
 
               DIVIDE TOT-POSTI BY 3
@@ -165,7 +172,8 @@
                  REMAINDER RESTO
 
               IF RESTO NOT = 0
-                 DISPLAY MSG-ERRORE
+                 DISPLAY
+                 'ERRORE: NUMERO NON MULTIPLO DI 3'
               END-IF
 
            END-PERFORM
@@ -174,33 +182,32 @@
            MOVE QUOTA-POSTI TO DISP-CENTRO
            MOVE QUOTA-POSTI TO DISP-CORRIDOIO.
 
-      *=======================================
-      * LETTURA FILE
-      *=======================================
-
+      *=========================================
+      * LETTURA FILE INPUT
+      *=========================================
        LEGGI-PRENOTA.
 
            READ FILE-PRENOTA
-               AT END
-                  MOVE 'S' TO FINE-FILE
+                AT END
+                   MOVE 'S' TO FINE-FILE
            END-READ.
 
-      *=======================================
-      * SCRITTURA RECORD NON EVASO
-      *=======================================
-        SCRIVI-NON-EVASA.
+      *=========================================
+      * SCRITTURA PRENOTAZIONE NON EVASA
+      *=========================================
+       SCRIVI-NON-EVASA.
 
-           MOVE SPACES     TO RIGA-DETTAGLIO
+           MOVE SPACES     TO RIGA-DETT
 
-           MOVE PR-CODAG   TO D-CODAG
-           MOVE PR-NPOSTI  TO D-NPOSTI
-           MOVE PR-DATAP   TO D-DATAP
+           MOVE PR-CODAG  TO D-CODAG
+           MOVE PR-NPOSTI TO D-NPOSTI
+           MOVE PR-DATAP  TO D-DATA
 
-           WRITE REC-STAMPA FROM RIGA-DETTAGLIO
+           WRITE REC-STAMPA FROM RIGA-DETT
 
            DISPLAY
-              'PRENOTAZIONE NON EVASA -> '
+             'NON EVASA -> '
               D-CODAG SPACE
               D-NPOSTI SPACE
-              D-DATAP.
+              D-DATA.
  
