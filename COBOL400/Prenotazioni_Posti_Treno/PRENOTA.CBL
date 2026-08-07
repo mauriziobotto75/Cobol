@@ -188,19 +188,19 @@
       *=======================================
       * SCRITTURA RECORD NON EVASO
       *=======================================
-             SCRIVI-NON-EVASA.
+        SCRIVI-NON-EVASA.
 
-           MOVE PR-CODAG  TO LS-CODAG
-           MOVE PR-NPOSTI TO LS-NPOSTI
-           MOVE PR-DATAP  TO LS-DATAP
+           MOVE SPACES     TO RIGA-DETTAGLIO
 
-           WRITE REC-LISTA
+           MOVE PR-CODAG   TO D-CODAG
+           MOVE PR-NPOSTI  TO D-NPOSTI
+           MOVE PR-DATAP   TO D-DATAP
 
-           DISPLAY '********************************'
-           DISPLAY '* PRENOTAZIONE NON EVASA       *'
-           DISPLAY '********************************'
-           DISPLAY 'AGENZIA : ' LS-CODAG
-           DISPLAY 'POSTI   : ' LS-NPOSTI
-           DISPLAY 'DATA    : ' LS-DATAP
-           DISPLAY ' '.
+           WRITE REC-STAMPA FROM RIGA-DETTAGLIO
+
+           DISPLAY
+              'PRENOTAZIONE NON EVASA -> '
+              D-CODAG SPACE
+              D-NPOSTI SPACE
+              D-DATAP.
  
