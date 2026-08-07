@@ -1,4 +1,4 @@
-       IDENTIFICATION DIVISION.
+        IDENTIFICATION DIVISION.
        PROGRAM-ID. PRENOTA.
 
        ENVIRONMENT DIVISION.
@@ -7,8 +7,9 @@
 
        FILE-CONTROL.
 
-           SELECT FILE-PRENOTAZIONI ASSIGN TO PRENOTA
-               ORGANIZATION IS SEQUENTIAL.
+           SELECT FILE-PRENOTA ASSIGN TO PRENOTA
+               ORGANIZATION IS SEQUENTIAL
+               ACCESS MODE IS SEQUENTIAL.
 
            SELECT FILE-LISTA ASSIGN TO LISTA
                ORGANIZATION IS SEQUENTIAL.
@@ -17,116 +18,182 @@
 
        FILE SECTION.
 
-       FD  FILE-PRENOTAZIONI.
+      *---------------------------------------
+      * FILE PRENOTAZIONI
+      *---------------------------------------
+       FD FILE-PRENOTA.
 
-       01  REC-PRENOTA.
-           05 PR-TIPO          PIC X(1).
-           05 PR-NPOSTI        PIC 9(4).
-           05 PR-CODAG         PIC X(4).
-           05 PR-DATAP         PIC 9(8).
+       01 REC-PRENOTA.
+          05 PR-TIPO           PIC X.
+          05 PR-NPOSTI         PIC 9(4).
+          05 PR-CODAG          PIC X(4).
+          05 PR-DATAP          PIC 9(8).
 
-       FD  FILE-LISTA.
+      *---------------------------------------
+      * FILE PRENOTAZIONI NON EVASE
+      *---------------------------------------
+       FD FILE-LISTA.
 
-       01  REC-LISTA.
-           05 LS-CODAG         PIC X(4).
-           05 LS-NPOSTI        PIC ZZZ9.
-           05 LS-DATAP         PIC 9(8).
+       01 REC-LISTA.
+          05 LS-CODAG          PIC X(4).
+          05 LS-NPOSTI         PIC ZZZ9.
+          05 LS-DATAP          PIC 9(8).
 
        WORKING-STORAGE SECTION.
 
-       77  FINE-FILE           PIC X VALUE 'N'.
+       77 FINE-FILE            PIC X VALUE 'N'.
 
-       77  TOT-POSTI           PIC 9(5).
-       77  RESTO               PIC 9.
+       77 TOT-POSTI            PIC 9(5).
+       77 QUOTA-POSTI          PIC 9(5).
+       77 RESTO                PIC 9.
 
-       77  DISP-FINESTRINO     PIC 9(5).
-       77  DISP-CENTRO         PIC 9(5).
-       77  DISP-CORRIDOIO      PIC 9(5).
+       77 DISP-FINESTRINO      PIC 9(5).
+       77 DISP-CENTRO          PIC 9(5).
+       77 DISP-CORRIDOIO       PIC 9(5).
+
+      *---------------------------------------
+      * TESTATA STAMPE
+      *---------------------------------------
+
+       01 MSG-ERRORE.
+          05 FILLER PIC X(35)
+             VALUE 'NUMERO POSTI NON MULTIPLO DI 3'.
 
        PROCEDURE DIVISION.
 
-       MAIN.
+       MAIN-PROCEDURE.
 
-      * Inserimento totale posti
+      *---------------------------------------
+      * ACQUISIZIONE TOTALE POSTI
+      *---------------------------------------
 
-           PERFORM UNTIL RESTO = 0
+           PERFORM ACQUISISCI-POSTI
 
-               DISPLAY 'TOTALE POSTI ? '
-               ACCEPT TOT-POSTI
+      *---------------------------------------
+      * APERTURA FILE
+      *---------------------------------------
 
-               DIVIDE TOT-POSTI BY 3
-                   GIVING DISP-FINESTRINO
-                   REMAINDER RESTO
-
-               IF RESTO NOT = 0
-                  DISPLAY 'IL NUMERO DEVE ESSERE MULTIPLO DI 3'
-               END-IF
-
-           END-PERFORM.
-
-      * Inizializzazione disponibilita'
-
-           MOVE DISP-FINESTRINO TO DISP-CENTRO
-           MOVE DISP-FINESTRINO TO DISP-CORRIDOIO
-
-           OPEN INPUT  FILE-PRENOTAZIONI
+           OPEN INPUT FILE-PRENOTA
                 OUTPUT FILE-LISTA
 
-           PERFORM LETTURA
+      *---------------------------------------
+      * PRIMA LETTURA
+      *---------------------------------------
+
+           PERFORM LEGGI-PRENOTA
+
+      *---------------------------------------
+      * ELABORAZIONE FILE
+      *---------------------------------------
 
            PERFORM UNTIL FINE-FILE = 'S'
 
-               EVALUATE PR-TIPO
+              EVALUATE PR-TIPO
 
-                   WHEN 'P'
+                 WHEN 'P'
 
-                       IF PR-NPOSTI <= DISP-FINESTRINO
-                          SUBTRACT PR-NPOSTI
-                             FROM DISP-FINESTRINO
-                       ELSE
-                          PERFORM SCRIVI-LISTA
-                       END-IF
+                    IF PR-NPOSTI <= DISP-FINESTRINO
+                       SUBTRACT PR-NPOSTI
+                           FROM DISP-FINESTRINO
+                    ELSE
+                       PERFORM SCRIVI-NON-EVASA
+                    END-IF
 
-                   WHEN 'C'
+                 WHEN 'N'
 
-                       IF PR-NPOSTI <= DISP-CORRIDOIO
-                          SUBTRACT PR-NPOSTI
-                             FROM DISP-CORRIDOIO
-                       ELSE
-                          PERFORM SCRIVI-LISTA
-                       END-IF
+                    IF PR-NPOSTI <= DISP-CENTRO
+                       SUBTRACT PR-NPOSTI
+                           FROM DISP-CENTRO
+                    ELSE
+                       PERFORM SCRIVI-NON-EVASA
+                    END-IF
 
-                   WHEN 'N'
+                 WHEN 'C'
 
-                       IF PR-NPOSTI <= DISP-CENTRO
-                          SUBTRACT PR-NPOSTI
-                             FROM DISP-CENTRO
-                       ELSE
-                          PERFORM SCRIVI-LISTA
-                       END-IF
+                    IF PR-NPOSTI <= DISP-CORRIDOIO
+                       SUBTRACT PR-NPOSTI
+                           FROM DISP-CORRIDOIO
+                    ELSE
+                       PERFORM SCRIVI-NON-EVASA
+                    END-IF
 
-               END-EVALUATE
+                 WHEN OTHER
 
-               PERFORM LETTURA
+                    DISPLAY
+                    'TIPO PRENOTAZIONE NON VALIDO'
+
+              END-EVALUATE
+
+              PERFORM LEGGI-PRENOTA
 
            END-PERFORM
 
-           CLOSE FILE-PRENOTAZIONI
+      *---------------------------------------
+      * CHIUSURA FILE
+      *---------------------------------------
+
+           CLOSE FILE-PRENOTA
                  FILE-LISTA
+
+      *---------------------------------------
+      * RIEPILOGO
+      *---------------------------------------
+
+           DISPLAY ' '
+           DISPLAY 'POSTI RESIDUI'
+           DISPLAY 'FINESTRINO : ' DISP-FINESTRINO
+           DISPLAY 'CENTRO     : ' DISP-CENTRO
+           DISPLAY 'CORRIDOIO  : ' DISP-CORRIDOIO
 
            STOP RUN.
 
-       LETTURA.
+      *=======================================
+      * ACQUISIZIONE POSTI
+      *=======================================
 
-           READ FILE-PRENOTAZIONI
+       ACQUISISCI-POSTI.
+
+           MOVE 1 TO RESTO
+
+           PERFORM UNTIL RESTO = 0
+
+              DISPLAY 'INSERIRE TOTALE POSTI: '
+              ACCEPT TOT-POSTI
+
+              DIVIDE TOT-POSTI BY 3
+                 GIVING QUOTA-POSTI
+                 REMAINDER RESTO
+
+              IF RESTO NOT = 0
+                 DISPLAY MSG-ERRORE
+              END-IF
+
+           END-PERFORM
+
+           MOVE QUOTA-POSTI TO DISP-FINESTRINO
+           MOVE QUOTA-POSTI TO DISP-CENTRO
+           MOVE QUOTA-POSTI TO DISP-CORRIDOIO.
+
+      *=======================================
+      * LETTURA FILE
+      *=======================================
+
+       LEGGI-PRENOTA.
+
+           READ FILE-PRENOTA
                AT END
                   MOVE 'S' TO FINE-FILE
            END-READ.
 
-       SCRIVI-LISTA.
+      *=======================================
+      * SCRITTURA RECORD NON EVASO
+      *=======================================
+
+       SCRIVI-NON-EVASA.
 
            MOVE PR-CODAG  TO LS-CODAG
            MOVE PR-NPOSTI TO LS-NPOSTI
            MOVE PR-DATAP  TO LS-DATAP
 
            WRITE REC-LISTA.
+ 
