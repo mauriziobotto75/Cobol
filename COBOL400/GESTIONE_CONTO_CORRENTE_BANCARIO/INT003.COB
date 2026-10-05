@@ -7,7 +7,7 @@
 
        FILE-CONTROL.
 
-           SELECT MOVDATA
+           SELECT MOVDATA-FILE
                ASSIGN TO DISK
                ORGANIZATION IS INDEXED
                ACCESS MODE IS DYNAMIC
@@ -18,7 +18,7 @@
 
        FILE SECTION.
 
-       FD MOVDATA.
+       FD MOVDATA-FILE.
 
        01 REC-MOV.
           05 MOVDATA       PIC 9(8).
@@ -51,9 +51,9 @@
            MOVE DATA-DA TO K-DATA
            MOVE 0       TO K-NUM
 
-           OPEN INPUT MOVDATA
+           OPEN INPUT MOVDATA-FILE
 
-           START MOVDATA
+           START MOVDATA-FILE
                KEY >= KEY-DATA
                INVALID KEY
                   MOVE 'S' TO FINE-PROG
@@ -61,22 +61,22 @@
 
            PERFORM UNTIL FINE-PROG = 'S'
 
-               READ MOVDATA NEXT RECORD
+               READ MOVDATA-FILE NEXT RECORD
 
                   AT END
                      MOVE 'S' TO FINE-PROG
 
                   NOT AT END
 
-                     IF MOVDATA > DATA-A
+                     IF MOVDATA OF REC-MOV > DATA-A
 
                         MOVE 'S' TO FINE-PROG
 
                      ELSE
 
                         DISPLAY CNTNUMERO
-                        DISPLAY MOVDATA
-                        DISPLAY MOVTIPO
+                        DISPLAY MOVDATA OF REC-MOV
+                        DISPLAY MOVTIPO OF REC-MOV
                         DISPLAY MOVIMPORTO
 
                      END-IF
@@ -85,6 +85,6 @@
 
            END-PERFORM
 
-           CLOSE MOVDATA
+           CLOSE MOVDATA-FILE
 
-       
+           STOP RUN.
