@@ -7,7 +7,7 @@
 
        FILE-CONTROL.
 
-           SELECT MOVTIPO
+           SELECT MOVTIPO-FILE
                ASSIGN TO DISK
                ORGANIZATION IS INDEXED
                ACCESS MODE IS DYNAMIC
@@ -18,7 +18,7 @@
 
        FILE SECTION.
 
-       FD MOVTIPO.
+       FD MOVTIPO-FILE.
 
        01 REC-MOV.
           05 MOVTIPO       PIC XX.
@@ -49,9 +49,9 @@
            MOVE TIPO-RICH TO K-TIPO
            MOVE ZEROS     TO K-DATA K-NUM
 
-           OPEN INPUT MOVTIPO
+           OPEN INPUT MOVTIPO-FILE
 
-           START MOVTIPO
+           START MOVTIPO-FILE
                 KEY >= KEY-MOVTIPO
                 INVALID KEY
                     MOVE 'S' TO FINE-PROG
@@ -59,17 +59,17 @@
 
            PERFORM UNTIL FINE-PROG = 'S'
 
-               READ MOVTIPO NEXT RECORD
+               READ MOVTIPO-FILE NEXT RECORD
 
                    AT END
                        MOVE 'S' TO FINE-PROG
 
                    NOT AT END
 
-                       IF MOVTIPO = TIPO-RICH
+                       IF MOVTIPO OF REC-MOV = TIPO-RICH
 
                           DISPLAY CNTNUMERO
-                          DISPLAY MOVDATA
+                          DISPLAY MOVDATA OF REC-MOV
                           DISPLAY MOVIMPORTO
                           DISPLAY MOVCAUSALE
 
@@ -83,6 +83,6 @@
 
            END-PERFORM
 
-           CLOSE MOVTIPO
+           CLOSE MOVTIPO-FILE
 
            STOP RUN.
