@@ -1,11 +1,42 @@
-     A          R CNTREC
-     A            CNTNUMERO     12A         TEXT('Numero Conto')
-     A            CLICOD         6A         TEXT('Codice Cliente')
-     A            CNTABI         5S 0       TEXT('ABI')
-     A            CNTCAB         5S 0       TEXT('CAB')
-     A            CNTDATAAPR     8S 0       TEXT('Data Apertura')
-     A            CNTSALDO      13P 2       TEXT('Saldo')
-     A            CNTFIDO       13P 2       TEXT('Fido')
-     A            CNTSTATO       1A         TEXT('A=Attivo C=Chiuso')
-     A            CNTULTMOV      8S 0       TEXT('Ultimo Movimento')
-     A          K CNTNUMERO
+     A*========================================================
+     A* CONTI.DSPF
+     A* Gestione Conti Correnti
+     A*========================================================
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      PRINT
+     A                                      REF(*LIBL/CONTI)
+
+     A          R CNTFMT
+     A                                      CF03(03)
+     A                                      CF12(12)
+
+     A                                  2 30'GESTIONE CONTI'
+
+     A                                  4  2'Numero Conto .:'
+     A            CNTNUMERO     12A  B  4 20
+
+     A                                  6  2'Codice Cliente :'
+     A            CLICODICE      6A  B  6 20
+
+     A                                  8  2'ABI ..........:'
+     A            CNTABI         5S 0B  8 20
+
+     A                                 10  2'CAB ..........:'
+     A            CNTCAB         5S 0B 10 20
+
+     A                                 12  2'Data Apertura :'
+     A            CNTDATAAPR     8S 0B 12 20
+
+     A                                 14  2'Saldo ........:'
+     A            CNTSALDO      13P 2B 14 20EDTCDE(J)
+
+     A                                 16  2'Fido .........:'
+     A            CNTFIDO       13P 2B 16 20EDTCDE(J)
+
+     A                                 18  2'Stato ........:'
+     A            CNTSTATO       1A  B 18 20
+
+     A                                 21  2'F3=Uscita'
+
+     A                                 22  2
+     A            MSGERR        50A  O 22  2
