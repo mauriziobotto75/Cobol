@@ -1,0 +1,10 @@
+     A          R MOVREC
+     A            MOVNUMERO      8S 0       TEXT('Progressivo')
+     A            CNTNUMERO     12A         TEXT('Numero Conto')
+     A            MOVDATA        8S 0       TEXT('Data Movimento')
+     A            MOVVALUTA      8S 0       TEXT('Data Valuta')
+     A            MOVTIPO        2A         TEXT('Tipo Movimento')
+     A            MOVCAUSALE    40A         TEXT('Causale')
+     A            MOVIMPORTO    13P 2       TEXT('Importo')
+     A            MOVUTENTE     10A         TEXT('Operatore')
+     A          K MOVNUMERO
