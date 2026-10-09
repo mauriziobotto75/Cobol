@@ -1,0 +1,11 @@
+     A          R CNTREC
+     A            CNTNUMERO     12A         TEXT('Numero Conto')
+     A            CLICOD         6A         TEXT('Codice Cliente')
+     A            CNTABI         5S 0       TEXT('ABI')
+     A            CNTCAB         5S 0       TEXT('CAB')
+     A            CNTDATAAPR     8S 0       TEXT('Data Apertura')
+     A            CNTSALDO      13P 2       TEXT('Saldo')
+     A            CNTFIDO       13P 2       TEXT('Fido')
+     A            CNTSTATO       1A         TEXT('A=Attivo C=Chiuso')
+     A            CNTULTMOV      8S 0       TEXT('Ultimo Movimento')
+     A          K CNTNUMERO
